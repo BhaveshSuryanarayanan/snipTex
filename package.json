@@ -2,7 +2,7 @@
   "name": "sniptex",
   "version": "0.1.0",
   "private": true,
-  "description": "Firefox extension: copy a selection on claude.ai as Markdown with LaTeX math",
+  "description": "Firefox extension: copy a selection on Claude, ChatGPT, or Gemini as Markdown with LaTeX math",
   "scripts": {
     "start": "web-ext run --start-url https://claude.ai",
     "lint": "web-ext lint",
