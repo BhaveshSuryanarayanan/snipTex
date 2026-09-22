@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!-- Offline check of the conversion logic. Open in Firefox (or take a headless
+     screenshot); each case prints its Markdown output. -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>SnipTeX harness</title>
+<style>
+  body { font: 13px monospace; }
+  #fixture { display: none; }
+  pre.out { background: #eee; padding: 6px; white-space: pre-wrap; margin: 0 0 8px; }
+  h3 { margin: 6px 0 2px; }
+</style>
+<script src="../vendor/turndown.js"></script>
+<script src="../vendor/turndown-plugin-gfm.js"></script>
+<script src="../content.js"></script>
+</head>
+<body>
+<div id="fixture">
+  <h2>Heading</h2>
+  <p id="p1">Energy is <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>E</mi></mrow><annotation encoding="application/x-tex">E = mc^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span id="glyph1">E=mc2</span></span></span> and <strong>bold</strong> with a_b and *star*.</p>
+  <p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow></mrow><annotation encoding="application/x-tex">\int_0^1 x^2\,dx = \frac{1}{3}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span id="glyph2">∫01x2dx=31</span></span></span></span></p>
+  <ul><li>item <em>one</em><ol><li>nested a</li><li>nested b</li></ol></li><li>item two</li></ul>
+  <div><div>python</div><button>Copy</button><pre class="code-block"><div><code class="language-python"><span>def f(x):</span>
+<span>    return x ** 2</span>
+</code></div></pre></div>
+  <table><thead><tr><th>a</th><th>b</th></tr></thead><tbody><tr><td id="cellA">1</td><td>2</td></tr><tr><td>3</td><td id="cellD">4</td></tr></tbody></table>
+  <p id="last">End.</p>
+</div>
+<div id="results"></div>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const fixture = $('fixture');
+  fixture.style.display = 'block';
+  function run(name, setup) {
+    const range = document.createRange();
+    setup(range);
+    SnipTeX.expandRange(range);
+    const h = document.createElement('h3'); h.textContent = name;
+    const pre = document.createElement('pre'); pre.className = 'out';
+    try { pre.textContent = SnipTeX.rangeToMarkdown(range); }
+    catch (e) { pre.textContent = 'ERROR: ' + e + '\n' + e.stack; }
+    $('results').append(h, pre);
+  }
+  run('whole fixture', (r) => r.selectNodeContents(fixture));
+  run('start mid-inline-math, end mid-display-math', (r) => {
+    r.setStart($('glyph1').firstChild, 2);
+    r.setEnd($('glyph2').firstChild, 3);
+  });
+  run('partial table (cellA..cellD)', (r) => {
+    r.setStart($('cellA').firstChild, 0);
+    r.setEnd($('cellD').firstChild, 1);
+  });
+  run('inside one cell', (r) => {
+    r.setStart($('cellA').firstChild, 0);
+    r.setEnd($('cellA').firstChild, 1);
+  });
+  fixture.style.display = 'none';
+</script>
+</body>
+</html>
