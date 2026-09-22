@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "SnipTeX",
+  "version": "0.1.0",
+  "description": "Copy any part of a Claude reply as Markdown, with math kept as LaTeX.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "sniptex@local",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  },
+  "host_permissions": ["https://claude.ai/*"]
+}

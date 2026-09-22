@@ -1,0 +1,23 @@
+{
+  "name": "sniptex",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Firefox extension: copy a selection on claude.ai as Markdown with LaTeX math",
+  "scripts": {
+    "start": "web-ext run --start-url https://claude.ai",
+    "lint": "web-ext lint",
+    "build": "web-ext build --overwrite-dest",
+    "sign": "web-ext sign --channel=unlisted"
+  },
+  "devDependencies": {
+    "web-ext": "^8.0.0"
+  },
+  "webExt": {
+    "ignoreFiles": [
+      "package.json",
+      "package-lock.json",
+      "README.md",
+      "test"
+    ]
+  }
+}

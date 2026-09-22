@@ -1,0 +1,6 @@
+node_modules/
+web-ext-artifacts/
+.amo-upload-uuid
+.web-extension-id
+*.xpi
+.env
