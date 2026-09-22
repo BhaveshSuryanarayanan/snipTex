@@ -177,21 +177,24 @@ var SnipTeX = (() => {
     if (!host) {
       host = document.createElement('div');
       host.id = 'sniptex-toast';
-      // Shadow DOM keeps the page's CSS out.
-      host.attachShadow({ mode: 'open' }).innerHTML = `
-        <style>
-          div {
-            position: fixed; bottom: 24px; right: 24px; z-index: 2147483647;
-            padding: 8px 14px; border-radius: 8px;
-            font: 500 13px/1.4 system-ui, sans-serif;
-            color: #fff; background: #1f7a4d; box-shadow: 0 4px 14px rgba(0,0,0,.25);
-            opacity: 0; transform: translateY(6px); transition: opacity .15s, transform .15s;
-            pointer-events: none;
-          }
-          div.error { background: #b3261e; }
-          div.show { opacity: 1; transform: none; }
-        </style>
-        <div role="status"></div>`;
+      // Shadow DOM keeps the page's CSS out. Built without innerHTML so
+      // web-ext lint stays quiet.
+      const shadow = host.attachShadow({ mode: 'open' });
+      const style = document.createElement('style');
+      style.textContent = `
+        div {
+          position: fixed; bottom: 24px; right: 24px; z-index: 2147483647;
+          padding: 8px 14px; border-radius: 8px;
+          font: 500 13px/1.4 system-ui, sans-serif;
+          color: #fff; background: #1f7a4d; box-shadow: 0 4px 14px rgba(0,0,0,.25);
+          opacity: 0; transform: translateY(6px); transition: opacity .15s, transform .15s;
+          pointer-events: none;
+        }
+        div.error { background: #b3261e; }
+        div.show { opacity: 1; transform: none; }`;
+      const box = document.createElement('div');
+      box.setAttribute('role', 'status');
+      shadow.append(style, box);
       document.documentElement.appendChild(host);
     }
     const box = host.shadowRoot.querySelector('div');
