@@ -135,6 +135,18 @@ var SnipTeX = (() => {
     });
     turndown.use(turndownPluginGfm.gfm);
     turndown.remove(['button', 'script', 'style', 'svg']);
+    // Claude's web-search source badges: <a class="group/tag" href="…">
+    // wrapping the site name and an arrow icon. Written as "text ([site](url))".
+    turndown.addRule('snipTexCitation', {
+      filter: (node) => node.nodeName === 'A' && node.classList.contains('group/tag')
+        && node.getAttribute('href'),
+      replacement(_content, node) {
+        const name = node.textContent.trim().replace(/[[\]]/g, '\\$&') || 'source';
+        const prev = node.previousSibling;
+        const spaced = !prev || /\s$/.test(prev.textContent || '');
+        return (spaced ? '' : ' ') + '([' + name + '](' + node.getAttribute('href') + '))';
+      },
+    });
     // Same as Turndown's list item rule, but with one space after the marker.
     turndown.addRule('snipTexListItem', {
       filter: 'li',

@@ -5,6 +5,7 @@ A Firefox extension that copies any part of a Claude reply on claude.ai as Markd
 - Inline math → `$…$`, display math → `$$…$$` (or `\(…\)` / `\[…\]`, see [Math format](#math-format)), read from KaTeX's `<annotation encoding="application/x-tex">`
 - If a selection starts or ends inside an equation, it grows to include the whole equation. It does the same for tables, unless you're selecting inside a single cell.
 - Code blocks come out as clean fences. Claude's language label and Copy button are removed, and the label is used as the fence language when the code has no `language-xxx` class
+- Web-search source badges become citations after the text: `claim ([site](url))`
 - Headings, lists, bold/italic, links, and GFM tables are converted by [Turndown](https://github.com/mixmark-io/turndown) and its GFM plugin (bundled in `vendor/`)
 
 ## Usage
