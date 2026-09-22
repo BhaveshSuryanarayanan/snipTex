@@ -59,6 +59,13 @@
     r.setStart($('cellA').firstChild, 0);
     r.setEnd($('cellA').firstChild, 1);
   });
+  // "Copy LaTeX": the equation under a right-clicked glyph.
+  for (const id of ['glyph1', 'glyph2', 'last']) {
+    const h = document.createElement('h3'); h.textContent = 'Copy LaTeX at #' + id;
+    const pre = document.createElement('pre'); pre.className = 'out';
+    pre.textContent = String(SnipTeX.texOf(SnipTeX.mathAncestor($(id))));
+    $('results').append(h, pre);
+  }
   fixture.style.display = 'none';
 </script>
 </body>

@@ -47,10 +47,10 @@ var SnipTeX = (() => {
   function extractMath(root) {
     const math = [];
     const replace = (el, display) => {
-      const ann = el.querySelector(TEX_ANNOTATION);
-      if (!ann) return;
+      const tex = texOf(el);
+      if (tex === null) return;
       const token = 'SNIPTEX' + math.length + 'MATH';
-      math.push({ tex: ann.textContent.trim(), display });
+      math.push({ tex, display });
       let placeholder;
       if (display) {
         placeholder = document.createElement('div');
@@ -170,12 +170,25 @@ var SnipTeX = (() => {
     }
   }
 
+  function texOf(mathEl) {
+    const ann = mathEl && mathEl.querySelector(TEX_ANNOTATION);
+    return ann ? ann.textContent.trim() : null;
+  }
+
+  // The element under the last right-click, for "Copy LaTeX".
+  let contextTarget = null;
+  document.addEventListener('contextmenu', (e) => { contextTarget = e.target; }, true);
+
+  function contextTex() {
+    return contextTarget ? texOf(mathAncestor(contextTarget)) : null;
+  }
+
   async function copySelection(format) {
     const markdown = selectionToMarkdown(format);
     if (!markdown) return { ok: false, reason: 'empty' };
     const ok = await writeClipboard(markdown);
-    // On failure the background page retries with the returned markdown.
-    return ok ? { ok } : { ok, reason: 'clipboard', markdown };
+    // On failure the background page retries with the returned text.
+    return ok ? { ok } : { ok, reason: 'clipboard', text: markdown };
   }
 
   let toastTimer = null;
@@ -227,12 +240,23 @@ var SnipTeX = (() => {
           return result;
         });
       }
+      if (msg.type === 'sniptex-target-is-math') {
+        return Promise.resolve(contextTex() !== null);
+      }
+      if (msg.type === 'sniptex-copy-latex') {
+        const tex = contextTex();
+        if (tex === null) return Promise.resolve({ ok: false, reason: 'empty' });
+        return writeClipboard(tex).then((ok) => {
+          if (ok) showToast('Copied LaTeX');
+          return ok ? { ok } : { ok, reason: 'clipboard', text: tex };
+        });
+      }
       if (msg.type === 'sniptex-toast') {
-        showToast(msg.ok ? 'Copied as Markdown' : 'Copy failed', !msg.ok);
+        showToast(msg.ok ? msg.message || 'Copied as Markdown' : 'Copy failed', !msg.ok);
       }
       return undefined;
     });
   }
 
-  return { copySelection, selectionToMarkdown, rangeToMarkdown, expandRange };
+  return { copySelection, selectionToMarkdown, rangeToMarkdown, expandRange, texOf, mathAncestor };
 })();

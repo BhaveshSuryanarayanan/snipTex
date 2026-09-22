@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>SnipTeX options</title>
+<link rel="stylesheet" href="../options/options.css">
+</head>
+<body>
+  <h1>Math format</h1>
+  <p>Default delimiters for copied equations. The other format is always one right-click away, or on its own shortcut.</p>
+  <fieldset id="formats">
+    <label class="choice">
+      <input type="radio" name="mathFormat" value="dollar">
+      <span><code>$…$</code> and <code>$$…$$</code><small>Obsidian, Typora, GitHub, Jupyter</small></span>
+    </label>
+    <label class="choice">
+      <input type="radio" name="mathFormat" value="bracket">
+      <span><code>\(…\)</code> and <code>\[…\]</code><small>LaTeX documents, Pandoc, MathJax defaults</small></span>
+    </label>
+  </fieldset>
+  <p id="format-status" class="status" role="status"></p>
+
+  <h1>Keyboard shortcuts</h1>
+  <p>Click a box, press the new combination, then save.</p>
+  <div id="shortcuts"></div>
+
+  <template id="shortcut-row">
+    <section class="shortcut">
+      <p class="desc"></p>
+      <p>Current: <kbd class="current">…</kbd></p>
+      <div class="row">
+        <input class="recorder" type="text" readonly placeholder="Click here, then press keys">
+        <button class="save" disabled>Save</button>
+        <button class="reset">Reset to default</button>
+      </div>
+      <p class="status" role="status"></p>
+    </section>
+  </template>
+
+  <details>
+    <summary>Shortcut rules</summary>
+    <ul>
+      <li>Use one or two of <kbd>Ctrl</kbd>, <kbd>Alt</kbd>, <kbd>Shift</kbd> (on macOS <kbd>⌘</kbd> and <kbd>Ctrl</kbd> too) plus a letter, digit, F-key, arrow, or Home/End/PageUp/PageDown/Insert/Delete/Space/Comma/Period.</li>
+      <li><kbd>Shift</kbd> can't be the only modifier. F1–F12 can be used alone.</li>
+      <li>If <kbd>Ctrl</kbd>+<kbd>Alt</kbd> types characters on your keyboard layout (it acts as AltGr on Polish and some other layouts), pick another combination.</li>
+      <li>You can also change these in <code>about:addons</code> → ⚙ → Manage Extension Shortcuts.</li>
+    </ul>
+  </details>
+
+  <script src="stub.js"></script>
+  <script src="../options/options.js"></script>
+  <script>
+    // Scripted checks; results are appended in a pre with id "out".
+    const press = (el, code, mods) => el.dispatchEvent(new KeyboardEvent('keydown',
+      { code, key: code, bubbles: true, cancelable: true, ...mods }));
+    const tick = () => new Promise((r) => setTimeout(r, 50));
+    setTimeout(async () => {
+      const out = [];
+      const rows = document.querySelectorAll('.shortcut');
+      out.push('shortcut rows: ' + rows.length);
+      const rec = rows[0].querySelector('.recorder');
+      const status = rows[0].querySelector('.status');
+      const cases = [
+        ['KeyC', { ctrlKey: true, altKey: true }], ['KeyM', { altKey: true, shiftKey: true }],
+        ['KeyC', {}], ['KeyC', { shiftKey: true }], ['F5', {}],
+        ['KeyC', { ctrlKey: true, altKey: true, shiftKey: true }], ['Backquote', { ctrlKey: true }],
+        ['ArrowUp', { ctrlKey: true, shiftKey: true }],
+      ];
+      for (const [code, mods] of cases) {
+        press(rec, code, mods);
+        out.push(code + ' ' + JSON.stringify(mods) + ' -> ' + (rec.value || 'ERR: ' + status.textContent));
+      }
+      press(rows[1].querySelector('.recorder'), 'KeyL', { ctrlKey: true, altKey: true });
+      rows[1].querySelector('.save').click();
+      await tick();
+      out.push('alt after save: ' + rows[1].querySelector('.current').textContent);
+      rows[1].querySelector('.reset').click();
+      await tick();
+      out.push('alt after reset: ' + rows[1].querySelector('.current').textContent);
+      const radio = document.querySelector('input[value=bracket]');
+      radio.checked = true;
+      radio.dispatchEvent(new Event('change', { bubbles: true }));
+      await tick();
+      out.push('stored mathFormat: ' + store.mathFormat);
+      if (document.title.startsWith('ERR')) out.push(document.title);
+      const pre = document.createElement('pre');
+      pre.id = 'out';
+      pre.textContent = out.join('\n');
+      document.body.append(pre);
+    }, 100);
+  </script>
+</body>
+</html>

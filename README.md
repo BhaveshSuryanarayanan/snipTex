@@ -15,6 +15,10 @@ Select text in a Claude reply, then either:
 
 A small toast confirms the copy.
 
+### Copy one equation
+
+Right-click any equation → **Copy LaTeX** copies just its source, e.g. `\int_0^1 x^2\,dx`, with no `$` or other delimiters. It's ready to paste into Overleaf or a `.tex` file. The menu item only appears when you right-click an equation.
+
 ### Math format
 
 Choose the default delimiters in the extension options (`about:addons` → SnipTeX → *Preferences*):
@@ -53,9 +57,15 @@ npm run build        # zip into web-ext-artifacts/
 
 Without Node, load it as a temporary add-on: `about:debugging#/runtime/this-firefox` → *Load Temporary Add-on…* → pick `manifest.json`. Firefox removes it when it restarts.
 
-### Conversion test
+### Offline checks
 
-`test/harness.html` runs the conversion on a hand-written KaTeX fixture and prints the Markdown for each case. Open it in a browser, or run:
+`test/` has pages that run without installing the extension:
+
+- `harness.html`: converts a hand-written KaTeX fixture and prints the Markdown for each case (selection expansion, both math formats, tables, code, Copy LaTeX lookup)
+- `background.html`: loads `background.js` against a fake WebExtension API (`stub.js`)
+- `options.html`: the real options page with scripted key presses, save/reset, and a format change
+
+Open them in a browser, or run all three:
 
 ```sh
 ./test/run-harness.sh   # headless Chromium, prints results to stdout
@@ -87,7 +97,7 @@ background.js        context menu + keyboard command → message the tab; clipbo
 content.js           selection → LaTeX + Markdown → clipboard; toast
 options/             shortcut settings page
 vendor/              Turndown 7.2.4 + turndown-plugin-gfm 1.0.2 (unmodified, MIT)
-test/                offline conversion harness
+test/                offline checks (conversion, background, options)
 ```
 
 ## Caveats

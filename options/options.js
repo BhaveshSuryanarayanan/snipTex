@@ -77,7 +77,7 @@ function buildShortcutRow(cmd) {
   const save = q('.save');
   const status = q('.status');
   let pending = null;
-  
+
   q('.desc').textContent = cmd.description || cmd.name;
 
   async function refresh() {

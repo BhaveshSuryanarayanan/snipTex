@@ -3,6 +3,7 @@
 const CLAUDE_PATTERN = 'https://claude.ai/*';
 const MENU_DEFAULT = 'sniptex-copy';
 const MENU_ALT = 'sniptex-copy-alt';
+const MENU_LATEX = 'sniptex-copy-latex';
 
 const FORMAT_LABELS = { dollar: '$…$', bracket: '\\(…\\)' };
 const otherFormat = (format) => (format === 'bracket' ? 'dollar' : 'bracket');
@@ -32,20 +33,42 @@ browser.runtime.onInstalled.addListener(() => {
     contexts: ['selection'],
     documentUrlPatterns: [CLAUDE_PATTERN],
   });
+  // Shown only over an equation; see onShown.
+  browser.menus.create({
+    id: MENU_LATEX,
+    title: 'Copy LaTeX',
+    contexts: ['all'],
+    documentUrlPatterns: [CLAUDE_PATTERN],
+    visible: false,
+  });
   updateMenuTitles();
+});
+
+browser.menus.onShown.addListener(async (info, tab) => {
+  if (!tab || !info.pageUrl || !info.pageUrl.startsWith('https://claude.ai/')) return;
+  let isMath = false;
+  try {
+    isMath = await browser.tabs.sendMessage(
+      tab.id, { type: 'sniptex-target-is-math' }, { frameId: info.frameId });
+  } catch (err) {
+    // No content script in this frame.
+  }
+  await browser.menus.update(MENU_LATEX, { visible: !!isMath });
+  browser.menus.refresh();
 });
 
 browser.storage.onChanged.addListener((changes, area) => {
   if (area === 'sync' && changes.mathFormat) updateMenuTitles();
 });
 
-async function copyInTab(tab, useAlt) {
+// Sends a copy request to the tab. If the page can't write the clipboard,
+// retries here and tells the tab which toast to show.
+async function requestCopy(tab, frameId, message, successToast) {
   if (!tab || tab.id === undefined) return;
-  const defaultFormat = await getDefaultFormat();
-  const format = useAlt ? otherFormat(defaultFormat) : defaultFormat;
+  const target = { frameId };
   let result;
   try {
-    result = await browser.tabs.sendMessage(tab.id, { type: 'sniptex-copy', format });
+    result = await browser.tabs.sendMessage(tab.id, message, target);
   } catch (err) {
     // No content script here (not claude.ai, or the page predates install).
     return;
@@ -54,21 +77,32 @@ async function copyInTab(tab, useAlt) {
   // The page refused the write; extension pages with clipboardWrite may not.
   let ok = false;
   try {
-    await navigator.clipboard.writeText(result.markdown);
+    await navigator.clipboard.writeText(result.text);
     ok = true;
   } catch (err) {
     console.error('SnipTeX: clipboard write failed', err);
   }
-  browser.tabs.sendMessage(tab.id, { type: 'sniptex-toast', ok }).catch(() => {});
+  browser.tabs.sendMessage(tab.id, { type: 'sniptex-toast', ok, message: successToast }, target)
+    .catch(() => {});
+}
+
+async function copyInTab(tab, frameId, useAlt) {
+  const defaultFormat = await getDefaultFormat();
+  const format = useAlt ? otherFormat(defaultFormat) : defaultFormat;
+  requestCopy(tab, frameId, { type: 'sniptex-copy', format }, 'Copied as Markdown');
 }
 
 browser.menus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === MENU_DEFAULT) copyInTab(tab, false);
-  else if (info.menuItemId === MENU_ALT) copyInTab(tab, true);
+  if (info.menuItemId === MENU_DEFAULT) copyInTab(tab, info.frameId, false);
+  else if (info.menuItemId === MENU_ALT) copyInTab(tab, info.frameId, true);
+  else if (info.menuItemId === MENU_LATEX) {
+    requestCopy(tab, info.frameId, { type: 'sniptex-copy-latex' }, 'Copied LaTeX');
+  }
 });
 
 browser.commands.onCommand.addListener(async (command, tab) => {
   if (command !== 'copy-as-markdown' && command !== 'copy-as-markdown-alt') return;
   if (!tab) [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-  copyInTab(tab, command === 'copy-as-markdown-alt');
+  // Top frame: claude.ai renders replies there.
+  copyInTab(tab, 0, command === 'copy-as-markdown-alt');
 });

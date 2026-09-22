@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<!-- Loads background.js against the API stub; the title reports OK or the error. -->
+<html><head><meta charset="utf-8"><title>pending</title>
+<script src="stub.js"></script>
+<script src="../background.js"></script>
+</head><body><pre id="out"></pre>
+<script>
+  document.getElementById('out').textContent =
+    document.title.startsWith('ERR') ? document.title : 'background.js loaded OK';
+</script>
+</body></html>
