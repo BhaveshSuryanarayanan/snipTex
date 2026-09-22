@@ -33,6 +33,16 @@
   <!-- Gemini-style math (assumed markup: data-math wrapper around KaTeX HTML, no annotation). -->
   <div id="gemini"><p>Pythagoras: <span class="math-inline" data-math="a^2 + b^2 = c^2"><span class="katex"><span class="katex-html" aria-hidden="true"><span id="gglyph1">a2+b2=c2</span></span></span></span> holds.</p>
   <div class="math-block" data-math="\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}"><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span id="gglyph2">∑n=1∞n21=6π2</span></span></span></span></div></div>
+  <!-- ChatGPT math (markup from chatgpt.com, 2026-09, glyphs trimmed): data-math-source
+       wrapper around HTML-only KaTeX. The inline form is assumed to be the same without display:block. -->
+  <div id="chatgpt"><p>The estimate <span role="math" data-math-source="\hat{x}
+=
+\frac{y}{h}" aria-label="\hat{x}"><span class="katex"><span class="katex-html" aria-hidden="true"><span id="cglyph1">x^=hy</span></span></span></span> is unbiased.</p>
+  <span data-start="9502" data-end="9549" role="math" data-math-source="\hat{x}
+=
+\frac{hx+n}{h}
+=
+x+\frac{n}{h}." data-client-katex-layout="" style="display: block;"><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span id="cglyph2">x^=hhx+n=x+hn.</span></span></span></span></span></div>
   <p id="last">End.</p>
 </div>
 <div id="results"></div>
@@ -73,12 +83,16 @@
     r.setStart($('gglyph1').firstChild, 3);
     r.setEnd($('gglyph2').firstChild, 2);
   }, 'bracket');
+  run('chatgpt: start mid-inline-math', (r) => {
+    r.setStart($('cglyph1').firstChild, 2);
+    r.setEnd($('cglyph2').firstChild, 3);
+  });
   run('inside one cell', (r) => {
     r.setStart($('cellA').firstChild, 0);
     r.setEnd($('cellA').firstChild, 1);
   });
   // "Copy LaTeX": the equation under a right-clicked glyph.
-  for (const id of ['glyph1', 'glyph2', 'gglyph1', 'gglyph2', 'last']) {
+  for (const id of ['glyph1', 'glyph2', 'gglyph1', 'gglyph2', 'cglyph1', 'cglyph2', 'last']) {
     const h = document.createElement('h3'); h.textContent = 'Copy LaTeX at #' + id;
     const pre = document.createElement('pre'); pre.className = 'out';
     pre.textContent = String(SnipTeX.texOf(SnipTeX.mathAncestor($(id))));

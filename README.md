@@ -4,7 +4,7 @@ A Firefox extension that copies any part of an AI chat reply as Markdown. Math s
 
 Supported sites: **claude.ai**, **chatgpt.com**, **gemini.google.com**.
 
-- Inline math → `$…$`, display math → `$$…$$` (or `\(…\)` / `\[…\]`, see [Math format](#math-format)). The source is read from KaTeX's `<annotation encoding="application/x-tex">` (Claude, ChatGPT) or the `data-math` attribute (Gemini).
+- Inline math → `$…$`, display math → `$$…$$` (or `\(…\)` / `\[…\]`, see [Math format](#math-format)). The source is read from KaTeX's `<annotation encoding="application/x-tex">` (Claude), `data-math-source` (ChatGPT), or `data-math` (Gemini).
 - If a selection starts or ends inside an equation, it grows to include the whole equation. It does the same for tables, unless you're selecting inside a single cell.
 - Code blocks come out as clean fences. Claude's language label and Copy button are removed, and the label is used as the fence language when the code has no `language-xxx` class
 - Claude's web-search source badges become citations after the text: `claim ([site](url))`. Source links on other sites come through as ordinary Markdown links.

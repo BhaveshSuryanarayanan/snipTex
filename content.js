@@ -3,10 +3,13 @@
 
 // Converts the current selection on claude.ai, chatgpt.com, or
 // gemini.google.com to Markdown, replacing rendered math with its LaTeX source.
-// Claude and ChatGPT keep the source in KaTeX's <annotation>; Gemini keeps it
-// in a data-math attribute on a wrapper around the KaTeX output.
+// Claude keeps the source in KaTeX's <annotation>. Gemini (data-math) and
+// ChatGPT (data-math-source) keep it in an attribute on a wrapper around
+// HTML-only KaTeX output.
 var SnipTeX = (() => {
   const TEX_ANNOTATION = 'annotation[encoding="application/x-tex"]';
+  const SOURCE_ATTRS = ['data-math', 'data-math-source'];
+  const WRAPPER_SEL = SOURCE_ATTRS.map((a) => `[${a}]`).join(', ');
   // Alphanumeric so Turndown never escapes it.
   const TOKEN_RE = /SNIPTEX(\d+)MATH/g;
   // Math delimiters per format: [open, close].
@@ -19,12 +22,17 @@ var SnipTeX = (() => {
     return node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
   }
 
-  // Outermost math wrapper: Gemini's [data-math] wraps the KaTeX output, and
-  // display math is a .katex inside a .katex-display.
+  // Outermost math wrapper: a source-attribute wrapper (Gemini, ChatGPT)
+  // around the KaTeX output, and display math is a .katex in a .katex-display.
   function mathAncestor(node) {
     const el = elementOf(node);
     if (!el) return null;
-    return el.closest('[data-math]') || el.closest('.katex-display') || el.closest('.katex');
+    return el.closest(WRAPPER_SEL) || el.closest('.katex-display') || el.closest('.katex');
+  }
+
+  function isDisplayWrapper(el) {
+    return el.nodeName === 'DIV' || el.classList.contains('math-block')
+      || el.style.display === 'block' || !!el.querySelector('.katex-display');
   }
 
   // Widen the range so it never cuts through an equation or a table.
@@ -53,7 +61,8 @@ var SnipTeX = (() => {
       const tex = texOf(el);
       if (tex === null) return;
       const token = 'SNIPTEX' + math.length + 'MATH';
-      math.push({ tex, display });
+      // Line breaks would end an inline $…$ in Markdown.
+      math.push({ tex: display ? tex : tex.replace(/\s*\n\s*/g, ' '), display });
       let placeholder;
       if (display) {
         placeholder = document.createElement('div');
@@ -63,9 +72,7 @@ var SnipTeX = (() => {
       }
       el.replaceWith(placeholder);
     };
-    root.querySelectorAll('[data-math]').forEach((el) => {
-      replace(el, el.classList.contains('math-block') || el.nodeName === 'DIV');
-    });
+    root.querySelectorAll(WRAPPER_SEL).forEach((el) => replace(el, isDisplayWrapper(el)));
     root.querySelectorAll('.katex-display').forEach((el) => replace(el, true));
     root.querySelectorAll('.katex').forEach((el) => replace(el, false));
     return math;
@@ -232,8 +239,10 @@ var SnipTeX = (() => {
 
   function texOf(mathEl) {
     if (!mathEl) return null;
-    const attr = mathEl.getAttribute('data-math');
-    if (attr) return attr.trim();
+    for (const name of SOURCE_ATTRS) {
+      const attr = mathEl.getAttribute(name);
+      if (attr) return attr.trim();
+    }
     const ann = mathEl.querySelector(TEX_ANNOTATION);
     return ann ? ann.textContent.trim() : null;
   }
