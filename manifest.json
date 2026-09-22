@@ -14,12 +14,18 @@
       }
     }
   },
+  "permissions": [
+    "clipboardWrite",
+    "contextMenus"
+  ],
   "host_permissions": [
     "https://claude.ai/*"
   ],
-  "permissions": [
-    "clipboardWrite"
-  ],
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
   "content_scripts": [
     {
       "matches": [
@@ -32,5 +38,13 @@
       ],
       "run_at": "document_idle"
     }
-  ]
+  ],
+  "commands": {
+    "copy-as-markdown": {
+      "suggested_key": {
+        "default": "Ctrl+Alt+C"
+      },
+      "description": "Copy the selection as Markdown"
+    }
+  }
 }

@@ -167,7 +167,61 @@ var SnipTeX = (() => {
     const markdown = selectionToMarkdown();
     if (!markdown) return { ok: false, reason: 'empty' };
     const ok = await writeClipboard(markdown);
-    return { ok, reason: ok ? null : 'clipboard' };
+    // On failure the background page retries with the returned markdown.
+    return ok ? { ok } : { ok, reason: 'clipboard', markdown };
+  }
+
+  let toastTimer = null;
+  function showToast(message, isError) {
+    let host = document.getElementById('sniptex-toast');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'sniptex-toast';
+      // Shadow DOM keeps the page's CSS out.
+      host.attachShadow({ mode: 'open' }).innerHTML = `
+        <style>
+          div {
+            position: fixed; bottom: 24px; right: 24px; z-index: 2147483647;
+            padding: 8px 14px; border-radius: 8px;
+            font: 500 13px/1.4 system-ui, sans-serif;
+            color: #fff; background: #1f7a4d; box-shadow: 0 4px 14px rgba(0,0,0,.25);
+            opacity: 0; transform: translateY(6px); transition: opacity .15s, transform .15s;
+            pointer-events: none;
+          }
+          div.error { background: #b3261e; }
+          div.show { opacity: 1; transform: none; }
+        </style>
+        <div role="status"></div>`;
+      document.documentElement.appendChild(host);
+    }
+    const box = host.shadowRoot.querySelector('div');
+    box.textContent = message;
+    box.classList.toggle('error', !!isError);
+    requestAnimationFrame(() => box.classList.add('show'));
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => box.classList.remove('show'), 1600);
+  }
+
+  function toastFor(result) {
+    if (result.ok) showToast('Copied as Markdown');
+    else if (result.reason === 'empty') showToast('Nothing selected', true);
+    // 'clipboard' failures wait for the background retry's verdict.
+  }
+
+  if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.onMessage) {
+    browser.runtime.onMessage.addListener((msg) => {
+      if (!msg) return undefined;
+      if (msg.type === 'sniptex-copy') {
+        return copySelection().then((result) => {
+          toastFor(result);
+          return result;
+        });
+      }
+      if (msg.type === 'sniptex-toast') {
+        showToast(msg.ok ? 'Copied as Markdown' : 'Copy failed', !msg.ok);
+      }
+      return undefined;
+    });
   }
 
   return { copySelection, selectionToMarkdown, rangeToMarkdown, expandRange };
