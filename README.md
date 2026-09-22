@@ -2,7 +2,7 @@
 
 A Firefox extension that copies any part of a Claude reply on claude.ai as Markdown. Math stays as LaTeX instead of turning into garbled glyphs.
 
-- Inline math → `$…$`, display math → `$$…$$`, read from KaTeX's `<annotation encoding="application/x-tex">`
+- Inline math → `$…$`, display math → `$$…$$` (or `\(…\)` / `\[…\]`, see [Math format](#math-format)), read from KaTeX's `<annotation encoding="application/x-tex">`
 - If a selection starts or ends inside an equation, it grows to include the whole equation. It does the same for tables, unless you're selecting inside a single cell.
 - Headings, lists, bold/italic, links, GFM tables, and fenced code blocks with the language (`language-xxx` class) are converted by [Turndown](https://github.com/mixmark-io/turndown) and its GFM plugin (bundled in `vendor/`)
 
@@ -15,11 +15,25 @@ Select text in a Claude reply, then either:
 
 A small toast confirms the copy.
 
-### Changing the shortcut
+### Math format
+
+Choose the default delimiters in the extension options (`about:addons` → SnipTeX → *Preferences*):
+
+| Format | Inline | Display | Good for |
+| --- | --- | --- | --- |
+| Dollar (default) | `$…$` | `$$…$$` | Obsidian, Typora, GitHub, Jupyter |
+| Bracket | `\(…\)` | `\[…\]` | LaTeX documents, Pandoc |
+
+You can still copy in the other format for a single copy:
+
+- right-click → **Copy as Markdown with …** (the menu names the other format), or
+- the second command, *Copy selection as Markdown (other math format)*. It has no shortcut by default; set one on the options page.
+
+### Changing shortcuts
 
 Use either of these:
 
-- **Extension options:** `about:addons` → SnipTeX → *Preferences*. Click the box, press the new combination, then click *Save*. *Reset to default* restores Ctrl+Alt+C.
+- **Extension options:** `about:addons` → SnipTeX → *Preferences*. Each command has its own row. Click the box, press the new combination, then click *Save*. *Reset to default* restores the original (Ctrl+Alt+C for the main copy, none for the other-format copy).
 - **Firefox's built-in page:** `about:addons` → ⚙ → *Manage Extension Shortcuts*.
 
 A shortcut needs one or two modifiers plus a key. Shift can't be the only modifier. F1–F12 work on their own.

@@ -7,6 +7,11 @@ var SnipTeX = (() => {
   const TEX_ANNOTATION = 'annotation[encoding="application/x-tex"]';
   // Alphanumeric so Turndown never escapes it.
   const TOKEN_RE = /SNIPTEX(\d+)MATH/g;
+  // Math delimiters per format: [open, close].
+  const FORMATS = {
+    dollar: { inline: ['$', '$'], display: ['$$\n', '\n$$'] },
+    bracket: { inline: ['\\(', '\\)'], display: ['\\[\n', '\n\\]'] },
+  };
 
   function elementOf(node) {
     return node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
@@ -60,11 +65,13 @@ var SnipTeX = (() => {
     return math;
   }
 
-  function restoreMath(markdown, math) {
+  function restoreMath(markdown, math, format) {
+    const delims = FORMATS[format] || FORMATS.dollar;
     return markdown.replace(TOKEN_RE, (whole, i) => {
       const m = math[Number(i)];
       if (!m) return whole;
-      return m.display ? '$$\n' + m.tex + '\n$$' : '$' + m.tex + '$';
+      const [open, close] = m.display ? delims.display : delims.inline;
+      return open + m.tex + close;
     });
   }
 
@@ -120,22 +127,22 @@ var SnipTeX = (() => {
     return turndown;
   }
 
-  function rangeToMarkdown(range) {
+  function rangeToMarkdown(range, format) {
     const container = document.createElement('div');
     container.appendChild(range.cloneContents());
     const math = extractMath(container);
     const markdown = getTurndown().turndown(container);
-    return restoreMath(markdown, math).trim();
+    return restoreMath(markdown, math, format).trim();
   }
 
-  function selectionToMarkdown() {
+  function selectionToMarkdown(format) {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
     const parts = [];
     for (let i = 0; i < sel.rangeCount; i++) {
       const range = sel.getRangeAt(i).cloneRange();
       expandRange(range);
-      parts.push(rangeToMarkdown(range));
+      parts.push(rangeToMarkdown(range, format));
     }
     return parts.filter(Boolean).join('\n\n');
   }
@@ -163,8 +170,8 @@ var SnipTeX = (() => {
     }
   }
 
-  async function copySelection() {
-    const markdown = selectionToMarkdown();
+  async function copySelection(format) {
+    const markdown = selectionToMarkdown(format);
     if (!markdown) return { ok: false, reason: 'empty' };
     const ok = await writeClipboard(markdown);
     // On failure the background page retries with the returned markdown.
@@ -215,7 +222,7 @@ var SnipTeX = (() => {
     browser.runtime.onMessage.addListener((msg) => {
       if (!msg) return undefined;
       if (msg.type === 'sniptex-copy') {
-        return copySelection().then((result) => {
+        return copySelection(msg.format).then((result) => {
           toastFor(result);
           return result;
         });

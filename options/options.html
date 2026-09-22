@@ -6,26 +6,44 @@
 <link rel="stylesheet" href="options.css">
 </head>
 <body>
-  <h1>Keyboard shortcut</h1>
-  <p>Copies the current selection on claude.ai as Markdown.</p>
+  <h1>Math format</h1>
+  <p>Default delimiters for copied equations. The other format is always one right-click away, or on its own shortcut.</p>
+  <fieldset id="formats">
+    <label class="choice">
+      <input type="radio" name="mathFormat" value="dollar">
+      <span><code>$…$</code> and <code>$$…$$</code><small>Obsidian, Typora, GitHub, Jupyter</small></span>
+    </label>
+    <label class="choice">
+      <input type="radio" name="mathFormat" value="bracket">
+      <span><code>\(…\)</code> and <code>\[…\]</code><small>LaTeX documents, Pandoc, MathJax defaults</small></span>
+    </label>
+  </fieldset>
+  <p id="format-status" class="status" role="status"></p>
 
-  <p>Current shortcut: <kbd id="current">…</kbd></p>
+  <h1>Keyboard shortcuts</h1>
+  <p>Click a box, press the new combination, then save.</p>
+  <div id="shortcuts"></div>
 
-  <label for="recorder">New shortcut</label>
-  <div class="row">
-    <input id="recorder" type="text" readonly placeholder="Click here, then press keys">
-    <button id="save" disabled>Save</button>
-    <button id="reset">Reset to default</button>
-  </div>
-  <p id="status" role="status"></p>
+  <template id="shortcut-row">
+    <section class="shortcut">
+      <p class="desc"></p>
+      <p>Current: <kbd class="current">…</kbd></p>
+      <div class="row">
+        <input class="recorder" type="text" readonly placeholder="Click here, then press keys">
+        <button class="save" disabled>Save</button>
+        <button class="reset">Reset to default</button>
+      </div>
+      <p class="status" role="status"></p>
+    </section>
+  </template>
 
   <details>
-    <summary>Rules</summary>
+    <summary>Shortcut rules</summary>
     <ul>
       <li>Use one or two of <kbd>Ctrl</kbd>, <kbd>Alt</kbd>, <kbd>Shift</kbd> (on macOS <kbd>⌘</kbd> and <kbd>Ctrl</kbd> too) plus a letter, digit, F-key, arrow, or Home/End/PageUp/PageDown/Insert/Delete/Space/Comma/Period.</li>
       <li><kbd>Shift</kbd> can't be the only modifier. F1–F12 can be used alone.</li>
       <li>If <kbd>Ctrl</kbd>+<kbd>Alt</kbd> types characters on your keyboard layout (it acts as AltGr on Polish and some other layouts), pick another combination.</li>
-      <li>You can also change it in <code>about:addons</code> → ⚙ → Manage Extension Shortcuts.</li>
+      <li>You can also change these in <code>about:addons</code> → ⚙ → Manage Extension Shortcuts.</li>
     </ul>
   </details>
 

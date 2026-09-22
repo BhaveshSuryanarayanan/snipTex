@@ -30,7 +30,7 @@ body {
 h1 { font-size: 18px; margin: 0 0 8px; }
 label { display: block; font-weight: 600; margin-bottom: 4px; }
 .row { display: flex; gap: 8px; flex-wrap: wrap; }
-input {
+input.recorder {
   flex: 1 1 200px;
   padding: 6px 8px;
   border: 1px solid var(--border);
@@ -39,7 +39,7 @@ input {
   color: var(--fg);
   font: inherit;
 }
-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+input.recorder:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 button {
   padding: 6px 12px;
   border: 1px solid var(--border);
@@ -57,7 +57,19 @@ kbd {
   padding: 1px 5px;
   font-family: ui-monospace, monospace;
 }
-#status { min-height: 1.5em; }
-#status.ok { color: var(--ok); }
-#status.err { color: var(--err); }
 details { color: var(--muted); }
+h1 + p { margin-top: 0; }
+h1:not(:first-child) { margin-top: 24px; }
+fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; }
+.choice {
+  display: flex; gap: 10px; align-items: flex-start;
+  font-weight: 400; margin: 0;
+  padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer;
+}
+.choice input { margin-top: 3px; }
+.choice small { display: block; color: var(--muted); }
+.shortcut { border-top: 1px solid var(--border); padding-top: 8px; }
+.shortcut .desc { font-weight: 600; margin: 0; }
+.status { min-height: 1.5em; margin: 4px 0; }
+.status.ok { color: var(--ok); }
+.status.err { color: var(--err); }

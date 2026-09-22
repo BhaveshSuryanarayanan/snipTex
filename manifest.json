@@ -16,7 +16,8 @@
   },
   "permissions": [
     "clipboardWrite",
-    "contextMenus"
+    "menus",
+    "storage"
   ],
   "host_permissions": [
     "https://claude.ai/*"
@@ -44,7 +45,10 @@
       "suggested_key": {
         "default": "Ctrl+Alt+C"
       },
-      "description": "Copy the selection as Markdown"
+      "description": "Copy selection as Markdown (default math format)"
+    },
+    "copy-as-markdown-alt": {
+      "description": "Copy selection as Markdown (other math format)"
     }
   },
   "options_ui": {

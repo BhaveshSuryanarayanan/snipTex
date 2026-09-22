@@ -1,6 +1,5 @@
 'use strict';
 
-const COMMAND = 'copy-as-markdown';
 const $ = (id) => document.getElementById(id);
 
 const NAMED_KEYS = {
@@ -11,7 +10,6 @@ const NAMED_KEYS = {
 };
 
 let isMac = false;
-let pending = null;
 
 // Map a keydown event to Firefox's shortcut syntax. Uses event.code so the
 // result doesn't depend on the keyboard layout (AltGr+C would otherwise
@@ -44,67 +42,104 @@ function toShortcut(e) {
 }
 
 function pretty(shortcut) {
-  if (!shortcut) return 'none';
+  if (!shortcut) return 'not set';
   if (!isMac) return shortcut;
   return shortcut.replace('Command', '⌘').replace('MacCtrl', '⌃').replace('Alt', '⌥').replace('Shift', '⇧');
 }
 
-function setStatus(text, kind) {
-  const el = $('status');
+function setStatus(el, text, kind) {
   el.textContent = text;
-  el.className = kind || '';
+  el.className = 'status' + (kind ? ' ' + kind : '');
 }
 
-async function refresh() {
+// Math format
+
+async function initFormat() {
+  const { mathFormat } = await browser.storage.sync.get({ mathFormat: 'dollar' });
+  const radio = document.querySelector(`input[name="mathFormat"][value="${mathFormat}"]`);
+  if (radio) radio.checked = true;
+  $('formats').addEventListener('change', async (e) => {
+    try {
+      await browser.storage.sync.set({ mathFormat: e.target.value });
+      setStatus($('format-status'), 'Saved.', 'ok');
+    } catch (err) {
+      setStatus($('format-status'), `Couldn't save: ${err.message}`, 'err');
+    }
+  });
+}
+
+// Shortcuts
+
+function buildShortcutRow(cmd) {
+  const row = $('shortcut-row').content.firstElementChild.cloneNode(true);
+  const q = (sel) => row.querySelector(sel);
+  const recorder = q('.recorder');
+  const save = q('.save');
+  const status = q('.status');
+  let pending = null;
+  
+  q('.desc').textContent = cmd.description || cmd.name;
+
+  async function refresh() {
+    const all = await browser.commands.getAll();
+    const current = all.find((c) => c.name === cmd.name);
+    q('.current').textContent = pretty(current && current.shortcut);
+  }
+
+  recorder.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') return;
+    e.preventDefault();
+    e.stopPropagation();
+    const result = toShortcut(e);
+    if (!result) return;
+    if (result.error) {
+      pending = null;
+      recorder.value = '';
+      save.disabled = true;
+      setStatus(status, result.error, 'err');
+      return;
+    }
+    pending = result.shortcut;
+    recorder.value = pretty(pending);
+    save.disabled = false;
+    setStatus(status, '');
+  });
+
+  save.addEventListener('click', async () => {
+    if (!pending) return;
+    try {
+      await browser.commands.update({ name: cmd.name, shortcut: pending });
+      setStatus(status, `Saved: ${pretty(pending)}`, 'ok');
+      pending = null;
+      recorder.value = '';
+      save.disabled = true;
+    } catch (err) {
+      setStatus(status, `Couldn't save: ${err.message}`, 'err');
+    }
+    refresh();
+  });
+
+  q('.reset').addEventListener('click', async () => {
+    try {
+      await browser.commands.reset(cmd.name);
+      setStatus(status, 'Reset to default.', 'ok');
+    } catch (err) {
+      setStatus(status, `Couldn't reset: ${err.message}`, 'err');
+    }
+    refresh();
+  });
+
+  refresh();
+  return row;
+}
+
+async function initShortcuts() {
   const commands = await browser.commands.getAll();
-  const cmd = commands.find((c) => c.name === COMMAND);
-  $('current').textContent = pretty(cmd && cmd.shortcut);
+  for (const cmd of commands) $('shortcuts').append(buildShortcutRow(cmd));
 }
-
-$('recorder').addEventListener('keydown', (e) => {
-  if (e.key === 'Tab') return;
-  e.preventDefault();
-  e.stopPropagation();
-  const result = toShortcut(e);
-  if (!result) return;
-  if (result.error) {
-    pending = null;
-    $('recorder').value = '';
-    $('save').disabled = true;
-    setStatus(result.error, 'err');
-    return;
-  }
-  pending = result.shortcut;
-  $('recorder').value = pretty(pending);
-  $('save').disabled = false;
-  setStatus('');
-});
-
-$('save').addEventListener('click', async () => {
-  if (!pending) return;
-  try {
-    await browser.commands.update({ name: COMMAND, shortcut: pending });
-    setStatus(`Saved: ${pretty(pending)}`, 'ok');
-    pending = null;
-    $('recorder').value = '';
-    $('save').disabled = true;
-  } catch (err) {
-    setStatus(`Couldn't save: ${err.message}`, 'err');
-  }
-  refresh();
-});
-
-$('reset').addEventListener('click', async () => {
-  try {
-    await browser.commands.reset(COMMAND);
-    setStatus('Reset to default.', 'ok');
-  } catch (err) {
-    setStatus(`Couldn't reset: ${err.message}`, 'err');
-  }
-  refresh();
-});
 
 (async () => {
   isMac = (await browser.runtime.getPlatformInfo()).os === 'mac';
-  refresh();
+  initFormat();
+  initShortcuts();
 })();

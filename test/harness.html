@@ -32,13 +32,13 @@
   const $ = (id) => document.getElementById(id);
   const fixture = $('fixture');
   fixture.style.display = 'block';
-  function run(name, setup) {
+  function run(name, setup, format) {
     const range = document.createRange();
     setup(range);
     SnipTeX.expandRange(range);
     const h = document.createElement('h3'); h.textContent = name;
     const pre = document.createElement('pre'); pre.className = 'out';
-    try { pre.textContent = SnipTeX.rangeToMarkdown(range); }
+    try { pre.textContent = SnipTeX.rangeToMarkdown(range, format); }
     catch (e) { pre.textContent = 'ERROR: ' + e + '\n' + e.stack; }
     $('results').append(h, pre);
   }
@@ -51,6 +51,10 @@
     r.setStart($('cellA').firstChild, 0);
     r.setEnd($('cellD').firstChild, 1);
   });
+  run('bracket format', (r) => {
+    r.setStart($('glyph1').firstChild, 0);
+    r.setEnd($('glyph2').firstChild, 1);
+  }, 'bracket');
   run('inside one cell', (r) => {
     r.setStart($('cellA').firstChild, 0);
     r.setEnd($('cellA').firstChild, 1);
