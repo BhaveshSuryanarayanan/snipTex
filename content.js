@@ -80,7 +80,48 @@ var SnipTeX = (() => {
       const match = el && /(?:^|\s)language-(\S+)/.exec(el.getAttribute('class') || '');
       if (match) return match[1];
     }
-    return '';
+    return pre.dataset.sniptexLang || '';
+  }
+
+  // Code block header text, like the "python" label: one short word.
+  const LABEL_RE = /^[A-Za-z0-9_+#.-]{1,20}$/;
+  const CONTENT_SEL = 'p, li, h1, h2, h3, h4, h5, h6, blockquote, table, pre, code, .katex';
+
+  // An element with no real content. Before a code block a single short
+  // word counts too (the language label); after it only empty elements do,
+  // such as button wrappers once their buttons are gone.
+  function isChrome(el, allowLabel) {
+    if (el.matches(CONTENT_SEL) || el.querySelector(CONTENT_SEL)) return false;
+    const text = el.textContent.trim();
+    return text === '' || (allowLabel && LABEL_RE.test(text));
+  }
+
+  // Remove the interface around code blocks (language label, copy button
+  // wrappers) and remember the label as the block's language. Walks up to
+  // three wrapper levels from each <pre>, removing the chrome elements right
+  // next to it.
+  function stripCodeChrome(root) {
+    root.querySelectorAll('button').forEach((el) => el.remove());
+    root.querySelectorAll('pre').forEach((pre) => {
+      let branch = pre;
+      for (let depth = 0; depth < 3 && branch && branch !== root; depth++) {
+        let sib = branch.previousElementSibling;
+        while (sib && isChrome(sib, true)) {
+          const prev = sib.previousElementSibling;
+          const text = sib.textContent.trim();
+          if (text && !pre.dataset.sniptexLang) pre.dataset.sniptexLang = text.toLowerCase();
+          sib.remove();
+          sib = prev;
+        }
+        sib = branch.nextElementSibling;
+        while (sib && isChrome(sib, false)) {
+          const next = sib.nextElementSibling;
+          sib.remove();
+          sib = next;
+        }
+        branch = branch.parentElement;
+      }
+    });
   }
 
   let turndown = null;
@@ -115,7 +156,7 @@ var SnipTeX = (() => {
     // syntax-highlighter wrappers often break.
     turndown.addRule('snipTexCodeBlock', {
       filter: 'pre',
-      replacement(content, node) {
+      replacement(_content, node) {
         const code = node.querySelector('code');
         const text = (code || node).textContent.replace(/\n$/, '');
         const lang = codeLanguage(node, code);
@@ -131,6 +172,7 @@ var SnipTeX = (() => {
     const container = document.createElement('div');
     container.appendChild(range.cloneContents());
     const math = extractMath(container);
+    stripCodeChrome(container);
     const markdown = getTurndown().turndown(container);
     return restoreMath(markdown, math, format).trim();
   }

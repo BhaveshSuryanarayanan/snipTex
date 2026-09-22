@@ -4,7 +4,8 @@ A Firefox extension that copies any part of a Claude reply on claude.ai as Markd
 
 - Inline math → `$…$`, display math → `$$…$$` (or `\(…\)` / `\[…\]`, see [Math format](#math-format)), read from KaTeX's `<annotation encoding="application/x-tex">`
 - If a selection starts or ends inside an equation, it grows to include the whole equation. It does the same for tables, unless you're selecting inside a single cell.
-- Headings, lists, bold/italic, links, GFM tables, and fenced code blocks with the language (`language-xxx` class) are converted by [Turndown](https://github.com/mixmark-io/turndown) and its GFM plugin (bundled in `vendor/`)
+- Code blocks come out as clean fences. Claude's language label and Copy button are removed, and the label is used as the fence language when the code has no `language-xxx` class
+- Headings, lists, bold/italic, links, and GFM tables are converted by [Turndown](https://github.com/mixmark-io/turndown) and its GFM plugin (bundled in `vendor/`)
 
 ## Usage
 
@@ -102,5 +103,5 @@ test/                offline checks (conversion, background, options)
 
 ## Caveats
 
-- claude.ai's markup can change. The KaTeX annotation is stable, but code-block language detection depends on a `language-xxx` class being present.
+- claude.ai's markup can change. The KaTeX annotation is stable. Code-block cleanup is a heuristic: it removes up to three wrapper levels of empty elements and one-word labels directly before a `<pre>`, so a real one-word line placed right before a code block can be mistaken for its label.
 - The extension only runs on claude.ai. Other sites that use KaTeX should work if you add them to `host_permissions` and the content script's `matches`.

@@ -24,6 +24,9 @@
   <div><div>python</div><button>Copy</button><pre class="code-block"><div><code class="language-python"><span>def f(x):</span>
 <span>    return x ** 2</span>
 </code></div></pre></div>
+  <p>Output:</p>
+  <div class="claude-code"><div class="header"><div class="label">Bash</div><div><button>Copy</button></div></div><div><pre class="code-block__code"><code><span>echo hi</span></code></pre></div></div>
+  <div id="inline-word">Note</div>
   <table><thead><tr><th>a</th><th>b</th></tr></thead><tbody><tr><td id="cellA">1</td><td>2</td></tr><tr><td>3</td><td id="cellD">4</td></tr></tbody></table>
   <p id="last">End.</p>
 </div>
@@ -55,6 +58,10 @@
     r.setStart($('glyph1').firstChild, 0);
     r.setEnd($('glyph2').firstChild, 1);
   }, 'bracket');
+  run('code block without language class (label only)', (r) => {
+    r.setStartBefore(document.querySelector('.claude-code').previousElementSibling);
+    r.setEndAfter(document.querySelector('.claude-code'));
+  });
   run('inside one cell', (r) => {
     r.setStart($('cellA').firstChild, 0);
     r.setEnd($('cellA').firstChild, 1);
