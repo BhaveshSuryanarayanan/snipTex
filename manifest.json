@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
   "name": "SnipTeX",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Copy any part of a Claude, ChatGPT, or Gemini reply as Markdown, with math kept as LaTeX.",
   "browser_specific_settings": {
     "gecko": {
-      "id": "sniptex@local",
+      "id": "sniptex@bhavesh",
       "strict_min_version": "140.0",
       "data_collection_permissions": {
         "required": [

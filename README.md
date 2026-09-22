@@ -80,7 +80,7 @@ Open them in a browser, or run all three:
 Release Firefox only installs signed add-ons. To sign for personal use without a public listing:
 
 1. Create an account at <https://addons.mozilla.org> and generate API credentials at <https://addons.mozilla.org/developers/addon/api/key/>.
-2. Change `browser_specific_settings.gecko.id` in `manifest.json` from `sniptex@local` to an ID of your own (e.g. `sniptex@yourname`). IDs must be unique on AMO.
+2. The extension ID is `sniptex@bhavesh` (`browser_specific_settings.gecko.id` in `manifest.json`). AMO ties every version to it, so don't change it. If you fork this, use an ID of your own.
 3. Sign:
    ```sh
    export WEB_EXT_API_KEY=user:12345:67
@@ -88,6 +88,14 @@ Release Firefox only installs signed add-ons. To sign for personal use without a
    npm run sign          # web-ext sign --channel=unlisted
    ```
 4. Install the `.xpi` from `web-ext-artifacts/` by dragging it into Firefox.
+
+Without Node, zip the extension files and upload the zip at <https://addons.mozilla.org/developers/addon/submit/distribution> (choose *On your own*):
+
+```sh
+mkdir -p web-ext-artifacts
+zip -r web-ext-artifacts/sniptex-$(python3 -c 'import json;print(json.load(open("manifest.json"))["version"])').zip \
+  manifest.json background.js content.js options vendor
+```
 
 Bump `version` in `manifest.json` before each new signing.
 
