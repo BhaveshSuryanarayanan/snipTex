@@ -25,7 +25,10 @@ async function updateMenuTitles() {
   });
 }
 
-browser.runtime.onInstalled.addListener(() => {
+// Firefox can keep menu items from an earlier version across reloads and
+// updates (e.g. with old documentUrlPatterns), so always rebuild from scratch.
+async function setupMenus() {
+  await browser.menus.removeAll();
   browser.menus.create({
     id: MENU_DEFAULT,
     title: 'Copy as Markdown',
@@ -46,8 +49,11 @@ browser.runtime.onInstalled.addListener(() => {
     documentUrlPatterns: SITE_PATTERNS,
     visible: false,
   });
-  updateMenuTitles();
-});
+  await updateMenuTitles();
+}
+
+browser.runtime.onInstalled.addListener(setupMenus);
+browser.runtime.onStartup.addListener(setupMenus);
 
 browser.menus.onShown.addListener(async (info, tab) => {
   const pageOrigin = info.pageUrl && new URL(info.pageUrl).origin;

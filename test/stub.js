@@ -15,12 +15,12 @@ window.browser = {
     reset: async (n) => { cmds.find((c) => c.name === n).shortcut = defaults[n]; },
     onCommand: ev(),
   },
-  runtime: { getPlatformInfo: async () => ({ os: 'linux' }), onInstalled: ev() },
+  runtime: { getPlatformInfo: async () => ({ os: 'linux' }), onInstalled: ev(), onStartup: ev() },
   storage: {
     sync: { get: async (d) => ({ ...d, ...store }), set: async (o) => Object.assign(store, o) },
     onChanged: ev(),
   },
-  menus: { onClicked: ev(), onShown: ev(), create() {}, update: async () => {}, refresh() {} },
+  menus: { onClicked: ev(), onShown: ev(), create() {}, removeAll: async () => {}, update: async () => {}, refresh() {} },
   tabs: { sendMessage: async () => undefined, query: async () => [] },
 };
 window.onerror = (m, src, line) => { document.title = 'ERR ' + m + ' @' + src + ':' + line; };
