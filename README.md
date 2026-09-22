@@ -1,16 +1,18 @@
 # SnipTeX
 
-A Firefox extension that copies any part of a Claude reply on claude.ai as Markdown. Math stays as LaTeX instead of turning into garbled glyphs.
+A Firefox extension that copies any part of an AI chat reply as Markdown. Math stays as LaTeX instead of turning into garbled glyphs.
 
-- Inline math → `$…$`, display math → `$$…$$` (or `\(…\)` / `\[…\]`, see [Math format](#math-format)), read from KaTeX's `<annotation encoding="application/x-tex">`
+Supported sites: **claude.ai**, **chatgpt.com**, **gemini.google.com**.
+
+- Inline math → `$…$`, display math → `$$…$$` (or `\(…\)` / `\[…\]`, see [Math format](#math-format)). The source is read from KaTeX's `<annotation encoding="application/x-tex">` (Claude, ChatGPT) or the `data-math` attribute (Gemini).
 - If a selection starts or ends inside an equation, it grows to include the whole equation. It does the same for tables, unless you're selecting inside a single cell.
 - Code blocks come out as clean fences. Claude's language label and Copy button are removed, and the label is used as the fence language when the code has no `language-xxx` class
-- Web-search source badges become citations after the text: `claim ([site](url))`
+- Claude's web-search source badges become citations after the text: `claim ([site](url))`. Source links on other sites come through as ordinary Markdown links.
 - Headings, lists, bold/italic, links, and GFM tables are converted by [Turndown](https://github.com/mixmark-io/turndown) and its GFM plugin (bundled in `vendor/`)
 
 ## Usage
 
-Select text in a Claude reply, then either:
+Select text in a reply on any supported site, then either:
 
 - press **Ctrl+Alt+C** (⌘⌥C on macOS), or
 - right-click → **Copy as Markdown**
@@ -104,5 +106,5 @@ test/                offline checks (conversion, background, options)
 
 ## Caveats
 
-- claude.ai's markup can change. The KaTeX annotation is stable. Code-block cleanup is a heuristic: it removes up to three wrapper levels of empty elements and one-word labels directly before a `<pre>`, so a real one-word line placed right before a code block can be mistaken for its label.
-- The extension only runs on claude.ai. Other sites that use KaTeX should work if you add them to `host_permissions` and the content script's `matches`.
+- The sites' markup can change. The KaTeX annotation is stable. Gemini support is based on its `data-math` attribute and has not been checked against every kind of reply. Code-block cleanup is a heuristic: it removes up to three wrapper levels of empty elements and one-word labels directly before a `<pre>`, so a real one-word line placed right before a code block can be mistaken for its label.
+- To add another site that uses KaTeX, add it to `host_permissions` and the content script's `matches` in `manifest.json`, and to `SITE_PATTERNS` in `background.js`.

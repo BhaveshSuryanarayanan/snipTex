@@ -1,6 +1,11 @@
 'use strict';
 
-const CLAUDE_PATTERN = 'https://claude.ai/*';
+// Keep in sync with host_permissions and content_scripts.matches in manifest.json.
+const SITE_PATTERNS = [
+  'https://claude.ai/*',
+  'https://chatgpt.com/*',
+  'https://gemini.google.com/*',
+];
 const MENU_DEFAULT = 'sniptex-copy';
 const MENU_ALT = 'sniptex-copy-alt';
 const MENU_LATEX = 'sniptex-copy-latex';
@@ -25,27 +30,28 @@ browser.runtime.onInstalled.addListener(() => {
     id: MENU_DEFAULT,
     title: 'Copy as Markdown',
     contexts: ['selection'],
-    documentUrlPatterns: [CLAUDE_PATTERN],
+    documentUrlPatterns: SITE_PATTERNS,
   });
   browser.menus.create({
     id: MENU_ALT,
     title: 'Copy as Markdown (other math format)',
     contexts: ['selection'],
-    documentUrlPatterns: [CLAUDE_PATTERN],
+    documentUrlPatterns: SITE_PATTERNS,
   });
   // Shown only over an equation; see onShown.
   browser.menus.create({
     id: MENU_LATEX,
     title: 'Copy LaTeX',
     contexts: ['all'],
-    documentUrlPatterns: [CLAUDE_PATTERN],
+    documentUrlPatterns: SITE_PATTERNS,
     visible: false,
   });
   updateMenuTitles();
 });
 
 browser.menus.onShown.addListener(async (info, tab) => {
-  if (!tab || !info.pageUrl || !info.pageUrl.startsWith('https://claude.ai/')) return;
+  const pageOrigin = info.pageUrl && new URL(info.pageUrl).origin;
+  if (!tab || !SITE_PATTERNS.some((p) => p.startsWith(pageOrigin + '/'))) return;
   let isMath = false;
   try {
     isMath = await browser.tabs.sendMessage(
@@ -70,7 +76,7 @@ async function requestCopy(tab, frameId, message, successToast) {
   try {
     result = await browser.tabs.sendMessage(tab.id, message, target);
   } catch (err) {
-    // No content script here (not claude.ai, or the page predates install).
+    // No content script here (unsupported site, or the page predates install).
     return;
   }
   if (!result || result.ok || result.reason !== 'clipboard') return;
@@ -103,6 +109,6 @@ browser.menus.onClicked.addListener((info, tab) => {
 browser.commands.onCommand.addListener(async (command, tab) => {
   if (command !== 'copy-as-markdown' && command !== 'copy-as-markdown-alt') return;
   if (!tab) [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-  // Top frame: claude.ai renders replies there.
+  // Top frame: all supported sites render replies there.
   copyInTab(tab, 0, command === 'copy-as-markdown-alt');
 });

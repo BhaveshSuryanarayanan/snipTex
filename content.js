@@ -1,8 +1,10 @@
 /* global TurndownService, turndownPluginGfm */
 'use strict';
 
-// Converts the current selection on claude.ai to Markdown, replacing KaTeX
-// output with its original LaTeX source.
+// Converts the current selection on claude.ai, chatgpt.com, or
+// gemini.google.com to Markdown, replacing rendered math with its LaTeX source.
+// Claude and ChatGPT keep the source in KaTeX's <annotation>; Gemini keeps it
+// in a data-math attribute on a wrapper around the KaTeX output.
 var SnipTeX = (() => {
   const TEX_ANNOTATION = 'annotation[encoding="application/x-tex"]';
   // Alphanumeric so Turndown never escapes it.
@@ -17,11 +19,12 @@ var SnipTeX = (() => {
     return node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
   }
 
-  // Outermost math wrapper: display math is a .katex inside a .katex-display.
+  // Outermost math wrapper: Gemini's [data-math] wraps the KaTeX output, and
+  // display math is a .katex inside a .katex-display.
   function mathAncestor(node) {
     const el = elementOf(node);
     if (!el) return null;
-    return el.closest('.katex-display') || el.closest('.katex');
+    return el.closest('[data-math]') || el.closest('.katex-display') || el.closest('.katex');
   }
 
   // Widen the range so it never cuts through an equation or a table.
@@ -60,6 +63,9 @@ var SnipTeX = (() => {
       }
       el.replaceWith(placeholder);
     };
+    root.querySelectorAll('[data-math]').forEach((el) => {
+      replace(el, el.classList.contains('math-block') || el.nodeName === 'DIV');
+    });
     root.querySelectorAll('.katex-display').forEach((el) => replace(el, true));
     root.querySelectorAll('.katex').forEach((el) => replace(el, false));
     return math;
@@ -225,7 +231,10 @@ var SnipTeX = (() => {
   }
 
   function texOf(mathEl) {
-    const ann = mathEl && mathEl.querySelector(TEX_ANNOTATION);
+    if (!mathEl) return null;
+    const attr = mathEl.getAttribute('data-math');
+    if (attr) return attr.trim();
+    const ann = mathEl.querySelector(TEX_ANNOTATION);
     return ann ? ann.textContent.trim() : null;
   }
 

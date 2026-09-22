@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "SnipTeX",
   "version": "0.1.0",
-  "description": "Copy any part of a Claude reply as Markdown, with math kept as LaTeX.",
+  "description": "Copy any part of a Claude, ChatGPT, or Gemini reply as Markdown, with math kept as LaTeX.",
   "browser_specific_settings": {
     "gecko": {
       "id": "sniptex@local",
@@ -20,7 +20,9 @@
     "storage"
   ],
   "host_permissions": [
-    "https://claude.ai/*"
+    "https://claude.ai/*",
+    "https://chatgpt.com/*",
+    "https://gemini.google.com/*"
   ],
   "background": {
     "scripts": [
@@ -30,7 +32,9 @@
   "content_scripts": [
     {
       "matches": [
-        "https://claude.ai/*"
+        "https://claude.ai/*",
+        "https://chatgpt.com/*",
+        "https://gemini.google.com/*"
       ],
       "js": [
         "vendor/turndown.js",

@@ -30,6 +30,9 @@
   <table><thead><tr><th>a</th><th>b</th></tr></thead><tbody><tr><td id="cellA">1</td><td>2</td></tr><tr><td>3</td><td id="cellD">4</td></tr></tbody></table>
   <!-- Citation markup copied from claude.ai (2026-09). -->
   <p id="cite">Philips offers a 6G research internship.<a href="https://stage4eu.it/annuncio/33925-philips-internship-6g-wireless-communication-research" target="_blank" rel="noopener noreferrer" class="group/tag relative h-[18px] rounded-full inline-flex items-center overflow-hidden -translate-y-px cursor-pointer"><span class="relative transition-colors h-full max-w-[180px] overflow-hidden px-1.5 inline-flex items-center font-small rounded-full border-0.5 border-border-300 bg-bg-200 group-hover/tag:bg-accent-900 group-hover/tag:border-accent-100/60"><span class="text-nowrap text-text-300 break-all truncate font-normal group-hover/tag:text-text-200">stage4eu</span></span><span class="transition-opacity opacity-[0%] group-hover/tag:opacity-[100%] h-[17px] absolute right-[0.5px] rounded-r-full flex items-center px-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"></path></svg></span></a> Another claim <a href="https://en.wikipedia.org/wiki/6G" target="_blank" rel="noopener noreferrer" class="group/tag relative h-[18px] rounded-full inline-flex items-center overflow-hidden -translate-y-px cursor-pointer"><span class="relative transition-colors h-full max-w-[180px] overflow-hidden px-1.5 inline-flex items-center font-small rounded-full border-0.5 border-border-300 bg-bg-200 group-hover/tag:bg-accent-900 group-hover/tag:border-accent-100/60"><span class="text-nowrap text-text-300 break-all truncate font-normal group-hover/tag:text-text-200">wikipedia</span></span><span class="transition-opacity opacity-[0%] group-hover/tag:opacity-[100%] h-[17px] absolute right-[0.5px] rounded-r-full flex items-center px-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"></path></svg></span></a><a href="https://arxiv.org/abs/2401.00001" target="_blank" rel="noopener noreferrer" class="group/tag relative h-[18px] rounded-full inline-flex items-center overflow-hidden -translate-y-px cursor-pointer"><span class="relative transition-colors h-full max-w-[180px] overflow-hidden px-1.5 inline-flex items-center font-small rounded-full border-0.5 border-border-300 bg-bg-200 group-hover/tag:bg-accent-900 group-hover/tag:border-accent-100/60"><span class="text-nowrap text-text-300 break-all truncate font-normal group-hover/tag:text-text-200">arxiv</span></span><span class="transition-opacity opacity-[0%] group-hover/tag:opacity-[100%] h-[17px] absolute right-[0.5px] rounded-r-full flex items-center px-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"></path></svg></span></a> and a normal <a href="https://example.com">link</a>.</p>
+  <!-- Gemini-style math (assumed markup: data-math wrapper around KaTeX HTML, no annotation). -->
+  <div id="gemini"><p>Pythagoras: <span class="math-inline" data-math="a^2 + b^2 = c^2"><span class="katex"><span class="katex-html" aria-hidden="true"><span id="gglyph1">a2+b2=c2</span></span></span></span> holds.</p>
+  <div class="math-block" data-math="\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}"><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span id="gglyph2">∑n=1∞n21=6π2</span></span></span></span></div></div>
   <p id="last">End.</p>
 </div>
 <div id="results"></div>
@@ -65,12 +68,17 @@
     r.setEndAfter(document.querySelector('.claude-code'));
   });
   run('citations', (r) => r.selectNodeContents($('cite')));
+  run('gemini: whole block', (r) => r.selectNodeContents($('gemini')));
+  run('gemini: start mid-inline-math', (r) => {
+    r.setStart($('gglyph1').firstChild, 3);
+    r.setEnd($('gglyph2').firstChild, 2);
+  }, 'bracket');
   run('inside one cell', (r) => {
     r.setStart($('cellA').firstChild, 0);
     r.setEnd($('cellA').firstChild, 1);
   });
   // "Copy LaTeX": the equation under a right-clicked glyph.
-  for (const id of ['glyph1', 'glyph2', 'last']) {
+  for (const id of ['glyph1', 'glyph2', 'gglyph1', 'gglyph2', 'last']) {
     const h = document.createElement('h3'); h.textContent = 'Copy LaTeX at #' + id;
     const pre = document.createElement('pre'); pre.className = 'out';
     pre.textContent = String(SnipTeX.texOf(SnipTeX.mathAncestor($(id))));
